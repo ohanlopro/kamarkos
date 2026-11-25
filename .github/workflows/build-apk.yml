@@ -1,0 +1,125 @@
+name: Build KamarKos APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install dependencies & setup Android platform
+        run: |
+          npm install
+          if [ ! -d "android" ]; then
+            npx cap add android
+          else
+            npx cap sync android
+          fi
+
+      - name: Force KamarKos Identity & Generate Launcher Icons
+        run: |
+          python3 -m pip install pillow
+          python3 -c "
+          import os, glob
+          from PIL import Image, ImageOps, ImageDraw
+
+          # 1. Update strings.xml (Nama Aplikasi di HP)
+          strings_path = 'android/app/src/main/res/values/strings.xml'
+          os.makedirs(os.path.dirname(strings_path), exist_ok=True)
+          strings_content = '''<?xml version=\"1.0\" encoding=\"utf-8\"?>
+          <resources>
+              <string name=\"app_name\">KamarKos</string>
+              <string name=\"title_activity_main\">KamarKos</string>
+              <string name=\"package_name\">com.kamarkos.app</string>
+              <string name=\"custom_url_scheme\">com.kamarkos.app</string>
+          </resources>
+          '''
+          with open(strings_path, 'w', encoding='utf-8') as f:
+              f.write(strings_content.strip())
+          print('Updated strings.xml to KamarKos')
+
+          # 2. Update build.gradle applicationId
+          gradle_path = 'android/app/build.gradle'
+          if os.path.exists(gradle_path):
+              with open(gradle_path, 'r', encoding='utf-8') as f:
+                  gc = f.read()
+              gc = gc.replace('applicationId \"com.juragankos.app\"', 'applicationId \"com.kamarkos.app\"')
+              with open(gradle_path, 'w', encoding='utf-8') as f:
+                  f.write(gc)
+              print('Updated build.gradle applicationId to com.kamarkos.app')
+
+          # 3. Generate Android Mipmap Icons dari www/icon-512.png
+          icon_src = 'www/icon-512.png'
+          if os.path.exists(icon_src):
+              im = Image.open(icon_src).convert('RGBA')
+              sizes = {
+                  'mipmap-mdpi': 48,
+                  'mipmap-hdpi': 72,
+                  'mipmap-xhdpi': 96,
+                  'mipmap-xxhdpi': 144,
+                  'mipmap-xxxhdpi': 192
+              }
+              for folder, sz in sizes.items():
+                  tdir = os.path.join('android/app/src/main/res', folder)
+                  os.makedirs(tdir, exist_ok=True)
+                  resized = im.resize((sz, sz), Image.Resampling.LANCZOS)
+                  resized.save(os.path.join(tdir, 'ic_launcher.png'), 'PNG')
+                  resized.save(os.path.join(tdir, 'ic_launcher_foreground.png'), 'PNG')
+                  
+                  mask = Image.new('L', (sz, sz), 0)
+                  draw = ImageDraw.Draw(mask)
+                  draw.ellipse((0, 0, sz, sz), fill=255)
+                  round_img = ImageOps.fit(resized, mask.size, centering=(0.5, 0.5))
+                  round_img.putalpha(mask)
+                  round_img.save(os.path.join(tdir, 'ic_launcher_round.png'), 'PNG')
+              print('Successfully generated all launcher icons from www/icon-512.png')
+
+              # 4. Generate splash screens
+              for sp in glob.glob('android/app/src/main/res/**/splash.png', recursive=True):
+                  try:
+                      orig = Image.open(sp)
+                      w, h = orig.size
+                      splash = Image.new('RGBA', (w, h), (15, 23, 42, 255))
+                      tsz = int(min(w, h) * 0.45)
+                      r_icon = im.resize((tsz, tsz), Image.Resampling.LANCZOS)
+                      splash.paste(r_icon, ((w - tsz)//2, (h - tsz)//2), r_icon)
+                      splash.convert('RGB').save(sp, 'PNG')
+                  except Exception:
+                      pass
+              print('Successfully generated splash screens')
+          else:
+              print('Warning: www/icon-512.png not found')
+          "
+
+      - name: Build Debug APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Rename APK
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk KamarKos.apk
+
+      - name: Upload KamarKos.apk
+        uses: actions/upload-artifact@v4
+        with:
+          name: KamarKos-APK
+          path: KamarKos.apk
+          retention-days: 30
