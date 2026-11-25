@@ -127,11 +127,13 @@
           </button>
 
         </div>
-        <div class="text-center space-y-1.5 pb-2">
+        <div class="text-center space-y-2 pb-2">
           <p class="text-[11px] text-slate-400">Belum terdaftar sebagai mitra pemilik kos?</p>
-          <p class="text-xs font-bold text-emerald-400">Silakan coba gratis aplikasi KamarKos sekarang!</p>
-          <button onclick="contactAdminFreeTrial()" class="mt-1 text-xs font-extrabold text-slate-950 bg-emerald-400 hover:bg-emerald-300 px-4 py-2 rounded-xl flex items-center justify-center gap-1.5 mx-auto transition shadow-md shadow-emerald-500/20">
-            <i class="fa-brands fa-whatsapp text-sm text-slate-950"></i> Hubungi Admin KamarKos
+          <button onclick="openFreeTrialModal()" class="w-full text-xs font-extrabold text-slate-950 bg-emerald-400 hover:bg-emerald-300 px-4 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition shadow-md shadow-emerald-500/20">
+            <i class="fa-solid fa-gift text-sm text-slate-950"></i> Coba Gratis 1 Bulan (Unlimited)
+          </button>
+          <button onclick="contactAdminFreeTrial()" class="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 hover:underline flex items-center justify-center gap-1.5 mx-auto pt-0.5">
+            <i class="fa-brands fa-whatsapp text-xs"></i> Butuh Bantuan? Hubungi Admin KamarKos
           </button>
         </div>
       </div>
@@ -220,43 +222,67 @@
       <!-- ========================================================= -->
       <!-- VIEW 2: LAYAR TERKUNCI SAAT LANGGANAN HABIS (SUSPENDED)    -->
       <!-- ========================================================= -->
-      <div id="suspendedView" class="hidden flex-1 flex flex-col items-center justify-center p-6 text-center bg-slate-900 text-white h-full">
-        <div class="w-20 h-20 rounded-3xl bg-rose-500/20 border-2 border-rose-500/40 text-rose-400 flex items-center justify-center mb-4 animate-pulse">
-          <i class="fa-solid fa-lock text-3xl"></i>
-        </div>
-        <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 mb-2">
-          MASA AKTIF LANGGANAN BERAKHIR
-        </span>
-        <h2 id="suspendedOwnerName" class="text-xl font-extrabold text-white">Halo, Pak Hendra Wijaya</h2>
-        <p class="text-xs text-slate-300 mt-2 leading-relaxed max-w-xs">
-          Akses aplikasi <b>KamarKos</b> untuk sementara dikunci karena masa berlangganan telah habis.
-        </p>
-
-        <div class="w-full bg-slate-800/90 border border-slate-700 rounded-2xl p-4 mt-5 text-left space-y-2 text-xs">
-          <div class="flex justify-between">
-            <span class="text-slate-400">Paket Saat Ini:</span>
-            <span id="suspendedPlanName" class="font-bold text-amber-400">Paket Basic (Maks 1 Kos)</span>
+      <div id="suspendedView" class="hidden flex-1 flex flex-col p-5 bg-slate-900 text-white h-full overflow-y-auto">
+        <div class="text-center pt-2">
+          <div class="w-14 h-14 rounded-2xl bg-rose-500/20 border-2 border-rose-500/40 text-rose-400 flex items-center justify-center mx-auto mb-3 animate-pulse">
+            <i class="fa-solid fa-lock text-2xl"></i>
           </div>
-          <div class="flex justify-between">
-            <span class="text-slate-400">Biaya Perpanjangan:</span>
-            <span id="suspendedPrice" class="font-bold text-emerald-400">Rp 50.000 / bulan</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-slate-400">Transfer Perpanjangan:</span>
-            <span id="suspendedAdminBank" class="font-bold text-white text-right">BCA 013-999-8888 (Admin)</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-slate-400">Status Data Kamar & Penghuni:</span>
-            <span class="font-bold text-sky-400"><i class="fa-solid fa-shield-halved"></i> 100% Aman di Cloud</span>
-          </div>
+          <span id="suspendedStatusBadge" class="px-3 py-1 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 inline-block mb-2">
+            MASA AKTIF LANGGANAN BERAKHIR
+          </span>
+          <h2 id="suspendedOwnerName" class="text-lg font-extrabold text-white">Halo, Pemilik Kos</h2>
+          <p id="suspendedDescText" class="text-[11px] text-slate-300 mt-1 leading-relaxed">
+            Akses aplikasi <b>KamarKos</b> sementara dikunci karena masa aktif telah habis. Data kamar & penghuni Anda <b>100% aman</b>.
+          </p>
         </div>
 
-        <button onclick="contactAdminForRenewal()" class="w-full mt-5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold py-3.5 px-4 rounded-2xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 text-sm">
-          <i class="fa-brands fa-whatsapp text-lg"></i> Hubungi Admin untuk Perpanjang
+        <!-- Step 1: Pilih Paket Langganan -->
+        <div class="mt-4 space-y-2">
+          <p class="text-[11px] font-extrabold text-emerald-400 uppercase tracking-wider">1. Pilih Paket Langganan (30 Hari)</p>
+          <div id="suspendedPlanSelector" class="space-y-1.5"></div>
+        </div>
+
+        <!-- Step 2: Pilih Metode Pembayaran (QRIS / VA) -->
+        <div class="mt-4 space-y-2">
+          <p class="text-[11px] font-extrabold text-emerald-400 uppercase tracking-wider">2. Pilih Metode Pembayaran</p>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <button type="button" id="payMethodBtnQRIS" onclick="selectRenewalPaymentMethod('QRIS')" class="p-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-500/15 text-left transition">
+              <div class="flex items-center justify-between">
+                <span class="font-extrabold text-white">QRIS</span>
+                <i class="fa-solid fa-qrcode text-emerald-400"></i>
+              </div>
+              <p class="text-[10px] text-slate-300 mt-0.5">GoPay, OVO, DANA, M-Banking</p>
+            </button>
+            <button type="button" id="payMethodBtnVA" onclick="selectRenewalPaymentMethod('VA')" class="p-2.5 rounded-xl border border-slate-700 bg-slate-800/80 text-left transition">
+              <div class="flex items-center justify-between">
+                <span class="font-extrabold text-white">Virtual Account</span>
+                <i class="fa-solid fa-building-columns text-sky-400"></i>
+              </div>
+              <p class="text-[10px] text-slate-400 mt-0.5">BCA, BRI, BNI, Mandiri</p>
+            </button>
+          </div>
+
+          <div id="vaBankSelectorBox" class="hidden bg-slate-800/80 border border-slate-700 rounded-xl p-2.5 space-y-1.5">
+            <p class="text-[10px] font-bold text-slate-400">Pilih Bank Virtual Account:</p>
+            <div class="grid grid-cols-4 gap-1.5 text-[11px] font-extrabold">
+              <button type="button" onclick="selectVaBank('BCA')" data-vabank="BCA" class="va-bank-btn py-1.5 rounded-lg bg-emerald-500 text-slate-950">BCA</button>
+              <button type="button" onclick="selectVaBank('BRI')" data-vabank="BRI" class="va-bank-btn py-1.5 rounded-lg bg-slate-700 text-slate-300">BRI</button>
+              <button type="button" onclick="selectVaBank('BNI')" data-vabank="BNI" class="va-bank-btn py-1.5 rounded-lg bg-slate-700 text-slate-300">BNI</button>
+              <button type="button" onclick="selectVaBank('MANDIRI')" data-vabank="MANDIRI" class="va-bank-btn py-1.5 rounded-lg bg-slate-700 text-slate-300">Mandiri</button>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="initiateCheckoutPayment()" class="w-full mt-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold py-3 px-4 rounded-2xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 text-xs">
+          <i class="fa-solid fa-shield-check text-sm"></i> Lanjutkan Pembayaran
         </button>
-        <div class="flex items-center justify-center mt-3">
-          <button onclick="logoutToLoginScreen()" class="text-xs text-slate-400 hover:text-white underline">
+
+        <div class="flex items-center justify-between mt-3 pt-2 border-t border-slate-800 text-[11px]">
+          <button onclick="logoutToLoginScreen()" class="text-slate-400 hover:text-white underline">
             ← Keluar Akun
+          </button>
+          <button onclick="contactAdminForRenewal()" class="text-emerald-400 hover:underline font-bold flex items-center gap-1">
+            <i class="fa-brands fa-whatsapp"></i> Tanya Admin
           </button>
         </div>
       </div>
@@ -743,6 +769,79 @@
       <div class="flex justify-end gap-2 pt-2">
         <button onclick="document.getElementById('addExpenseModal').classList.add('hidden')" class="px-4 py-2 rounded-xl border border-slate-300 font-bold text-slate-600">Batal</button>
         <button onclick="saveNewExpense()" class="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL 5B: DAFTAR UJI COBA GRATIS 1 BULAN (SELF-SERVICE)    -->
+  <!-- ========================================================= -->
+  <div id="freeTrialModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
+    <div class="bg-slate-900 border border-emerald-500/40 text-white w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl p-5 space-y-3 text-xs">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+        <div>
+          <span class="text-[10px] font-bold uppercase text-emerald-400">Gratis 30 Hari • Tanpa Batas Kamar</span>
+          <h3 class="text-sm font-extrabold text-white"><i class="fa-solid fa-gift text-emerald-400 mr-1"></i> Daftar Uji Coba Gratis</h3>
+        </div>
+        <button onclick="document.getElementById('freeTrialModal').classList.add('hidden')" class="text-slate-400 hover:text-white text-base">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div>
+        <label class="text-slate-300 font-semibold">Nama Lengkap Pemilik Kos</label>
+        <input id="trialOwnerName" type="text" placeholder="Contoh: Ibu Siti Aminah" class="w-full bg-slate-800 border border-slate-700 focus:border-emerald-500 rounded-xl px-3 py-2 font-semibold mt-1 text-white focus:outline-none" />
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="text-slate-300 font-semibold">Nomor WhatsApp</label>
+          <input id="trialOwnerPhone" type="tel" placeholder="0812xxxxxxxx" class="w-full bg-slate-800 border border-slate-700 focus:border-emerald-500 rounded-xl px-3 py-2 font-semibold mt-1 text-white focus:outline-none" />
+        </div>
+        <div>
+          <label class="text-slate-300 font-semibold">Buat PIN (6 Angka)</label>
+          <input id="trialOwnerPin" type="text" maxlength="12" placeholder="Contoh: 123456" class="w-full bg-slate-800 border border-slate-700 focus:border-emerald-500 rounded-xl px-3 py-2 font-extrabold mt-1 text-emerald-400 focus:outline-none" />
+        </div>
+      </div>
+
+      <div>
+        <label class="text-slate-300 font-semibold">Nama Kos Pertama Anda</label>
+        <input id="trialFirstKos" type="text" placeholder="Contoh: Kos Melati Indah" class="w-full bg-slate-800 border border-slate-700 focus:border-emerald-500 rounded-xl px-3 py-2 font-semibold mt-1 text-white focus:outline-none" />
+      </div>
+
+      <div id="trialErrorBox" class="hidden bg-rose-500/20 border border-rose-500/40 text-rose-300 rounded-xl px-3 py-2 text-[11px] font-semibold"></div>
+
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="document.getElementById('freeTrialModal').classList.add('hidden')" class="px-4 py-2.5 rounded-xl border border-slate-700 font-bold text-slate-400">Batal</button>
+        <button id="btnSubmitFreeTrial" onclick="submitFreeTrialRegistration()" class="flex-1 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold transition">Aktifkan Sekarang</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL 5C: CHECKOUT PEMBAYARAN QRIS / VIRTUAL ACCOUNT       -->
+  <!-- ========================================================= -->
+  <div id="checkoutPaymentModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
+    <div class="bg-slate-900 border border-slate-700 text-white w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl p-5 space-y-3 text-xs">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+        <div>
+          <span class="text-[10px] font-bold uppercase text-emerald-400">Perpanjangan Otomatis</span>
+          <h3 class="text-sm font-extrabold text-white"><i class="fa-solid fa-receipt text-emerald-400 mr-1"></i> Rincian Pembayaran</h3>
+        </div>
+        <button onclick="document.getElementById('checkoutPaymentModal').classList.add('hidden')" class="text-slate-400 hover:text-white text-base">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div id="checkoutInvoiceBody" class="space-y-2.5"></div>
+
+      <div class="space-y-2 pt-1">
+        <button id="btnCheckPaymentStatus" onclick="checkRenewalPaymentStatus()" class="w-full py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold flex items-center justify-center gap-1.5 transition">
+          <i class="fa-solid fa-rotate"></i> Cek Status Pembayaran
+        </button>
+        <button onclick="sendCheckoutToAdminWA()" class="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-emerald-400 font-bold flex items-center justify-center gap-1.5 transition">
+          <i class="fa-brands fa-whatsapp"></i> Konfirmasi via WhatsApp Admin
+        </button>
       </div>
     </div>
   </div>
@@ -1544,7 +1643,7 @@
       const admUser = (state.adminUsername || 'admin').toLowerCase(); const admPass = state.adminPassword || '123456'; if ((userRaw.toLowerCase() === admUser || userRaw === state.adminPhone) && pinRaw === admPass) {
         errBox.classList.add('hidden');
         switchRole('superadmin');
-        showToast('Selamat datang, Super Admin Juragan Kos!');
+        showToast('Selamat datang, Super Admin KamarKos!');
         return;
       }
 
@@ -1565,6 +1664,107 @@
       }
 
       errBox.classList.remove('hidden');
+    }
+
+    function openFreeTrialModal() {
+      document.getElementById('trialOwnerName').value = '';
+      document.getElementById('trialOwnerPhone').value = '';
+      document.getElementById('trialOwnerPin').value = '';
+      document.getElementById('trialFirstKos').value = '';
+      const errBox = document.getElementById('trialErrorBox');
+      errBox.classList.add('hidden');
+      errBox.textContent = '';
+      const modal = document.getElementById('freeTrialModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    async function submitFreeTrialRegistration() {
+      const name = (document.getElementById('trialOwnerName').value || '').trim();
+      const rawPhone = (document.getElementById('trialOwnerPhone').value || '').trim();
+      const pin = (document.getElementById('trialOwnerPin').value || '').trim();
+      const firstKos = (document.getElementById('trialFirstKos').value || '').trim();
+      const errBox = document.getElementById('trialErrorBox');
+      const btn = document.getElementById('btnSubmitFreeTrial');
+
+      const showErr = (msg) => {
+        errBox.textContent = msg;
+        errBox.classList.remove('hidden');
+      };
+
+      if (!name || name.length < 3) return showErr('Mohon isi nama lengkap minimal 3 huruf.');
+      const cleanPhone = rawPhone.replace(/\D/g, '');
+      if (!cleanPhone || cleanPhone.length < 9) return showErr('Mohon masukkan Nomor WhatsApp yang aktif dan valid.');
+      if (!pin || pin.length < 4) return showErr('Mohon buat PIN minimal 4 karakter.');
+      if (!firstKos) return showErr('Mohon isi nama kos pertama Anda.');
+
+      errBox.classList.add('hidden');
+      btn.disabled = true;
+      const origText = btn.textContent;
+      btn.textContent = '⏳ Memproses...';
+
+      try {
+        // Ambil data terbaru dari cloud agar cek nomor WA akurat
+        await syncFromCloud();
+
+        const phoneSuffix = cleanPhone.slice(-8);
+        const alreadyExists = state.owners.some(o => {
+          const existingClean = (o.phone || '').replace(/\D/g, '');
+          return existingClean && (existingClean === cleanPhone || existingClean.endsWith(phoneSuffix));
+        });
+
+        if (alreadyExists) {
+          btn.disabled = false;
+          btn.textContent = origText;
+          return showErr('Nomor WhatsApp ini sudah pernah terdaftar. Silakan langsung login menggunakan PIN Anda.');
+        }
+
+        const newId = 'owner_' + Date.now();
+        const expiryISO = addDaysToISO(null, 30); // Uji coba gratis 1 bulan (30 hari)
+
+        state.owners.push({
+          id: newId,
+          name,
+          phone: cleanPhone,
+          pin,
+          plan: 'TRIAL',
+          isTrial: true,
+          maxKos: 99,
+          maxRooms: 999,
+          monthlyFee: 0,
+          registeredAtISO: addDaysToISO(null, 0),
+          expiryDateISO: expiryISO,
+          expiryDate: formatIsoToIndo(expiryISO),
+          status: 'active',
+          bankInfo: 'BCA -',
+          bankHolder: name,
+          properties: [
+            {
+              id: 'kos_' + Date.now(),
+              name: firstKos,
+              type: 'Campur',
+              address: 'Indonesia',
+              floorplanImage: '',
+              gridCells: ['r_trial_1', 'r_trial_2', 'corridor', 'parking', 'parking'],
+              expenses: [],
+              rooms: [
+                { id: 'r_trial_1', number: '01', floor: 'Lantai 1', status: 'empty', baseRent: 750000, extraFee: 0, tenantName: '', campus: '', origin: '', phone: '', parentPhone: '', dueDate: '-', note: 'Siap Huni', pinX: 25, pinY: 25 },
+                { id: 'r_trial_2', number: '02', floor: 'Lantai 1', status: 'empty', baseRent: 750000, extraFee: 0, tenantName: '', campus: '', origin: '', phone: '', parentPhone: '', dueDate: '-', note: 'Siap Huni', pinX: 55, pinY: 25 }
+              ]
+            }
+          ]
+        });
+
+        saveState();
+        document.getElementById('freeTrialModal').classList.add('hidden');
+        switchRole('owner', newId);
+        showToast('Selamat datang! Uji coba gratis 1 bulan (Unlimited) aktif!');
+      } catch (e) {
+        showErr('Terjadi kesalahan koneksi. Silakan coba lagi.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = origText;
+      }
     }
 
     // =========================================================
@@ -1678,11 +1878,16 @@
       today.setHours(0, 0, 0, 0);
 
       state.owners.forEach(o => {
-        // Sinkronkan kuota dengan Master Paket jika bukan CUSTOM
-        const masterPlan = (state.plans || []).find(p => p.code === o.plan);
-        if (masterPlan && o.plan !== 'CUSTOM') {
-          o.maxKos = masterPlan.maxKos;
-          if (!o.maxRooms) o.maxRooms = masterPlan.maxRooms || 50;
+        // Sinkronkan kuota dengan Master Paket jika bukan CUSTOM / TRIAL
+        if (o.plan === 'TRIAL') {
+          o.maxKos = 99;
+          o.maxRooms = 999;
+        } else {
+          const masterPlan = (state.plans || []).find(p => p.code === o.plan);
+          if (masterPlan && o.plan !== 'CUSTOM') {
+            o.maxKos = masterPlan.maxKos;
+            if (!o.maxRooms) o.maxRooms = masterPlan.maxRooms || 50;
+          }
         }
 
         // Tandai kos atau kamar yang melebihi batas kuota paket
@@ -2274,21 +2479,182 @@
     }
 
     // =========================================================
-    // RENDER SUSPENDED SCREEN
+    // RENDER SUSPENDED / TRIAL EXPIRED SCREEN & CHECKOUT
     // =========================================================
+    let selectedRenewalPlanCode = '';
+    let selectedRenewalPaymentMethod = 'QRIS';
+    let selectedVaBank = 'BCA';
+    let activeCheckoutInvoice = null;
+
     function renderSuspendedView(owner) {
+      const badgeEl = document.getElementById('suspendedStatusBadge');
+      const descEl = document.getElementById('suspendedDescText');
       document.getElementById('suspendedOwnerName').textContent = `Halo, ${owner.name}`;
-      document.getElementById('suspendedPlanName').textContent = `Paket ${owner.plan}`;
-      document.getElementById('suspendedPrice').textContent = `${formatRupiah(owner.monthlyFee)} / bulan`;
-      const bankEl = document.getElementById('suspendedAdminBank');
-      if (bankEl) {
-        bankEl.textContent = `${state.adminBankInfo || 'BCA 013-999-8888'} (${state.adminBankHolder || 'Admin'})`;
+
+      if (owner.plan === 'TRIAL') {
+        badgeEl.textContent = 'MASA UJI COBA 1 BULAN BERAKHIR';
+        descEl.innerHTML = 'Masa uji coba gratis 1 bulan Anda telah berakhir. Pilih paket langganan di bawah ini untuk mengaktifkan kembali akses <b>KamarKos</b> Anda.';
+      } else {
+        badgeEl.textContent = 'MASA AKTIF LANGGANAN BERAKHIR';
+        descEl.innerHTML = 'Akses aplikasi <b>KamarKos</b> sementara dikunci karena masa aktif telah habis. Data kamar & penghuni Anda <b>100% aman</b>.';
       }
+
+      const plans = state.plans || DEFAULT_PLANS;
+      if (!selectedRenewalPlanCode || !plans.some(p => p.code === selectedRenewalPlanCode)) {
+        selectedRenewalPlanCode = (owner.plan !== 'TRIAL' && plans.some(p => p.code === owner.plan))
+          ? owner.plan
+          : plans[0].code;
+      }
+
+      const selectorEl = document.getElementById('suspendedPlanSelector');
+      selectorEl.innerHTML = plans.map(p => {
+        const isSelected = p.code === selectedRenewalPlanCode;
+        const quotaTxt = p.maxKos >= 99 ? 'Unlimited Kos & Kamar' : `Maks ${p.maxKos} Kos • ${p.maxRooms || 50} Kamar/Kos`;
+        return `
+          <button type="button" onclick="selectRenewalPlan('${p.code}')" class="w-full p-2.5 rounded-xl border text-left flex items-center justify-between transition ${isSelected ? 'border-emerald-500 bg-emerald-500/15' : 'border-slate-700 bg-slate-800/80 hover:border-slate-600'}">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-extrabold text-xs text-white">${p.code}</span>
+                ${isSelected ? '<i class="fa-solid fa-circle-check text-emerald-400 text-xs"></i>' : ''}
+              </div>
+              <p class="text-[10px] text-slate-400">${quotaTxt}</p>
+            </div>
+            <div class="text-right">
+              <span class="font-extrabold text-xs text-emerald-400">${formatRupiah(p.fee)}</span>
+              <p class="text-[9px] text-slate-400">/ bulan</p>
+            </div>
+          </button>
+        `;
+      }).join('');
+
+      selectRenewalPaymentMethod(selectedRenewalPaymentMethod);
+    }
+
+    function selectRenewalPlan(code) {
+      selectedRenewalPlanCode = code;
+      renderSuspendedView(getCurrentOwner());
+    }
+
+    function selectRenewalPaymentMethod(method) {
+      selectedRenewalPaymentMethod = method;
+      const btnQris = document.getElementById('payMethodBtnQRIS');
+      const btnVa = document.getElementById('payMethodBtnVA');
+      const vaBox = document.getElementById('vaBankSelectorBox');
+
+      if (method === 'QRIS') {
+        btnQris.className = 'p-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-500/15 text-left transition';
+        btnVa.className = 'p-2.5 rounded-xl border border-slate-700 bg-slate-800/80 text-left transition';
+        vaBox.classList.add('hidden');
+      } else {
+        btnQris.className = 'p-2.5 rounded-xl border border-slate-700 bg-slate-800/80 text-left transition';
+        btnVa.className = 'p-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-500/15 text-left transition';
+        vaBox.classList.remove('hidden');
+      }
+    }
+
+    function selectVaBank(bank) {
+      selectedVaBank = bank;
+      document.querySelectorAll('.va-bank-btn').forEach(btn => {
+        if (btn.getAttribute('data-vabank') === bank) {
+          btn.className = 'va-bank-btn py-1.5 rounded-lg bg-emerald-500 text-slate-950';
+        } else {
+          btn.className = 'va-bank-btn py-1.5 rounded-lg bg-slate-700 text-slate-300';
+        }
+      });
+    }
+
+    function initiateCheckoutPayment() {
+      const owner = getCurrentOwner();
+      const plan = (state.plans || DEFAULT_PLANS).find(p => p.code === selectedRenewalPlanCode) || DEFAULT_PLANS[0];
+      const invId = 'KK-' + Date.now().toString().slice(-6);
+      const methodLabel = selectedRenewalPaymentMethod === 'QRIS'
+        ? 'QRIS (Semua E-Wallet / M-Banking)'
+        : `Virtual Account ${selectedVaBank}`;
+
+      activeCheckoutInvoice = {
+        invId,
+        ownerId: owner.id,
+        ownerName: owner.name,
+        planCode: plan.code,
+        amount: plan.fee,
+        method: selectedRenewalPaymentMethod,
+        bank: selectedVaBank,
+        methodLabel
+      };
+
+      const bodyEl = document.getElementById('checkoutInvoiceBody');
+      bodyEl.innerHTML = `
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-3 space-y-1.5">
+          <div class="flex justify-between">
+            <span class="text-slate-400">No. Tagihan:</span>
+            <span class="font-extrabold text-white">${invId}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Paket Pilihan:</span>
+            <span class="font-extrabold text-emerald-400">${plan.code} (30 Hari)</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Metode Bayar:</span>
+            <span class="font-bold text-sky-400">${methodLabel}</span>
+          </div>
+          <div class="flex justify-between border-t border-slate-700 pt-1.5 mt-1.5">
+            <span class="text-slate-300 font-bold">Total Tagihan:</span>
+            <span class="font-extrabold text-sm text-emerald-400">${formatRupiah(plan.fee)}</span>
+          </div>
+        </div>
+
+        <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3 text-center space-y-1.5">
+          <p class="text-[11px] font-bold text-amber-300">
+            <i class="fa-solid fa-circle-info mr-1"></i> Pembayaran Otomatis Menunggu Aktivasi Gateway (Tahap 2)
+          </p>
+          <p class="text-[10px] text-slate-300 leading-relaxed">
+            Setelah koneksi Payment Gateway aktif, kode ${selectedRenewalPaymentMethod === 'QRIS' ? 'QRIS' : 'Nomor Virtual Account'} akan muncul otomatis di sini & akun langsung aktif detik itu juga setelah Anda transfer.
+          </p>
+          <div class="pt-1 border-t border-amber-500/20 text-[10px] text-slate-300">
+            Sementara dapat transfer manual ke:<br>
+            <b class="text-white">${state.adminBankInfo || 'BCA 013-999-8888'} a.n ${state.adminBankHolder || 'Admin KamarKos'}</b>
+          </div>
+        </div>
+      `;
+
+      const modal = document.getElementById('checkoutPaymentModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    async function checkRenewalPaymentStatus() {
+      const btn = document.getElementById('btnCheckPaymentStatus');
+      const orig = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengecek Status...';
+
+      await syncFromCloud();
+      evaluateAllOwnerSubscriptions();
+      const owner = getCurrentOwner();
+
+      btn.disabled = false;
+      btn.innerHTML = orig;
+
+      if (owner && owner.status === 'active') {
+        document.getElementById('checkoutPaymentModal').classList.add('hidden');
+        renderAll();
+        showToast('Pembayaran terverifikasi! Akun KamarKos Anda sudah aktif kembali.');
+      } else {
+        showToast('Pembayaran belum masuk. Silakan konfirmasi via WhatsApp Admin.');
+      }
+    }
+
+    function sendCheckoutToAdminWA() {
+      if (!activeCheckoutInvoice) return contactAdminForRenewal();
+      const inv = activeCheckoutInvoice;
+      const text = `Halo Admin KamarKos, saya *${inv.ownerName}* ingin melakukan pembayaran perpanjangan:\n• No. Tagihan: *${inv.invId}*\n• Paket: *${inv.planCode} (${formatRupiah(inv.amount)} / bulan)*\n• Metode: *${inv.methodLabel}*\n\nMohon info atau aktivasi akun saya. Terima kasih 🙏`;
+      window.open(`https://wa.me/${state.adminPhone}?text=${encodeURIComponent(text)}`, '_blank');
     }
 
     function contactAdminForRenewal() {
       const owner = getCurrentOwner();
-      const text = `Halo Admin KamarKos, saya *${owner.name}* ingin memperpanjang langganan aplikasi KamarKos (${owner.plan} - ${formatRupiah(owner.monthlyFee)}/bulan). Mohon info pembayarannya. Terima kasih.`;
+      const plan = (state.plans || DEFAULT_PLANS).find(p => p.code === selectedRenewalPlanCode) || { code: owner.plan, fee: owner.monthlyFee };
+      const text = `Halo Admin KamarKos, saya *${owner.name}* ingin memperpanjang langganan aplikasi KamarKos (Paket ${plan.code} - ${formatRupiah(plan.fee)}/bulan). Mohon info pembayarannya. Terima kasih.`;
       window.open(`https://wa.me/${state.adminPhone}?text=${encodeURIComponent(text)}`, '_blank');
     }
 
