@@ -92,9 +92,7 @@
       <!-- ========================================================= -->
       <div id="loginView" class="hidden flex-1 flex flex-col justify-between p-6 bg-gradient-to-b from-slate-900 via-slate-900 to-emerald-950 text-white h-full overflow-y-auto">
         <div class="pt-4 text-center space-y-2">
-          <div class="w-16 h-16 rounded-3xl bg-emerald-500 text-slate-950 flex items-center justify-center mx-auto shadow-xl shadow-emerald-500/25">
-            <i class="fa-solid fa-building-user text-3xl"></i>
-          </div>
+          <img src="./icon-192.png" alt="Logo KamarKos" class="w-16 h-16 rounded-2xl mx-auto shadow-lg shadow-emerald-500/20 object-cover border border-slate-700/60" />
           <h1 class="text-xl font-extrabold tracking-tight pt-1">KamarKos</h1>
           <p class="text-xs text-slate-400">Aplikasi Manajemen Kos & Tagihan WA Otomatis</p>
         </div>
@@ -128,10 +126,12 @@
             <i class="fa-solid fa-right-to-bracket"></i> MASUK APLIKASI
           </button>
 
-          </div><div class="text-center space-y-1 pb-1">
+        </div>
+        <div class="text-center space-y-1.5 pb-2">
           <p class="text-[11px] text-slate-400">Belum terdaftar sebagai mitra pemilik kos?</p>
-          <button onclick="contactAdminUpgrade()" class="text-xs font-extrabold text-emerald-400 hover:underline flex items-center justify-center gap-1 mx-auto">
-            <i class="fa-brands fa-whatsapp"></i> Hubungi Admin KamarKos
+          <p class="text-xs font-bold text-emerald-400">Silakan coba gratis aplikasi KamarKos sekarang!</p>
+          <button onclick="contactAdminFreeTrial()" class="mt-1 text-xs font-extrabold text-slate-950 bg-emerald-400 hover:bg-emerald-300 px-4 py-2 rounded-xl flex items-center justify-center gap-1.5 mx-auto transition shadow-md shadow-emerald-500/20">
+            <i class="fa-brands fa-whatsapp text-sm text-slate-950"></i> Hubungi Admin KamarKos
           </button>
         </div>
       </div>
@@ -3230,6 +3230,11 @@
       saveState();
       renderAll();
       showToast(`Password login berhasil diubah menjadi "${newPin}"!`);
+    }
+
+    function contactAdminFreeTrial() {
+      const msg = `Halo Admin KamarKos, saya tertarik mencoba aplikasi KamarKos untuk pengelolaan kos saya. Mohon informasi untuk aktivasi uji coba gratisnya. Terima kasih 🙏`;
+      window.open(`https://wa.me/${state.adminPhone}?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
     function contactAdminUpgrade() {
