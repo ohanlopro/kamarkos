@@ -1,0 +1,8 @@
+{
+  "appId": "com.kamarkos.app",
+  "appName": "KamarKos",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}

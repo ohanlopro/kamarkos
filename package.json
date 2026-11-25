@@ -1,0 +1,12 @@
+{
+  "name": "kamarkos-mobile",
+  "version": "1.0.0",
+  "description": "KamarKos Android App",
+  "dependencies": {
+    "@capacitor/core": "^6.1.2"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/cli": "^6.1.2"
+  }
+}
