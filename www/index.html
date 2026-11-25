@@ -132,9 +132,15 @@
           <button onclick="openFreeTrialModal()" class="w-full text-xs font-extrabold text-slate-950 bg-emerald-400 hover:bg-emerald-300 px-4 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition shadow-md shadow-emerald-500/20">
             <i class="fa-solid fa-gift text-sm text-slate-950"></i> Coba Gratis 1 Bulan (Unlimited)
           </button>
-          <button onclick="contactAdminFreeTrial()" class="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 hover:underline flex items-center justify-center gap-1.5 mx-auto pt-0.5">
-            <i class="fa-brands fa-whatsapp text-xs"></i> Butuh Bantuan? Hubungi Admin KamarKos
-          </button>
+          <div class="flex items-center justify-center gap-3 pt-1">
+            <button onclick="openPricingModal()" class="text-[11px] font-bold text-sky-400 hover:text-sky-300 hover:underline flex items-center gap-1">
+              <i class="fa-solid fa-tags text-[10px]"></i> Lihat Paket & Harga
+            </button>
+            <span class="text-slate-600">•</span>
+            <button onclick="contactAdminFreeTrial()" class="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1">
+              <i class="fa-brands fa-whatsapp text-xs"></i> Hubungi Admin
+            </button>
+          </div>
         </div>
       </div>
 
@@ -769,6 +775,40 @@
       <div class="flex justify-end gap-2 pt-2">
         <button onclick="document.getElementById('addExpenseModal').classList.add('hidden')" class="px-4 py-2 rounded-xl border border-slate-300 font-bold text-slate-600">Batal</button>
         <button onclick="saveNewExpense()" class="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL 5A: INFORMASI PAKET & HARGA KAMARKOS                -->
+  <!-- ========================================================= -->
+  <div id="pricingInfoModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
+    <div class="bg-slate-900 border border-slate-700 text-white w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl p-5 space-y-3 text-xs max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+        <div>
+          <span class="text-[10px] font-bold uppercase text-sky-400">Layanan Manajemen Kos Digital</span>
+          <h3 class="text-sm font-extrabold text-white"><i class="fa-solid fa-tags text-sky-400 mr-1"></i> Paket & Harga KamarKos</h3>
+        </div>
+        <button onclick="document.getElementById('pricingInfoModal').classList.add('hidden')" class="text-slate-400 hover:text-white text-base">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <p class="text-[11px] text-slate-300 leading-relaxed">
+        <b>KamarKos</b> adalah aplikasi SaaS manajemen kamar kos per lantai, pencatatan penghuni, pembukuan keuangan, dan pengingat tagihan WhatsApp otomatis untuk pemilik kos di seluruh Indonesia.
+      </p>
+
+      <div id="pricingModalPlanList" class="space-y-2"></div>
+
+      <div class="bg-slate-800/80 border border-slate-700 rounded-2xl p-3 space-y-1 text-[11px]">
+        <p class="font-bold text-emerald-400"><i class="fa-solid fa-headset mr-1"></i> Kontak Layanan Pelanggan:</p>
+        <p class="text-slate-300">WhatsApp Admin: <b id="pricingAdminPhoneText" class="text-white">6281225009999</b></p>
+        <p class="text-[10px] text-slate-400">Tersedia uji coba gratis 1 bulan (30 hari) tanpa batas kamar untuk mitra baru.</p>
+      </div>
+
+      <div class="flex gap-2 pt-1">
+        <button onclick="document.getElementById('pricingInfoModal').classList.add('hidden')" class="px-4 py-2.5 rounded-xl border border-slate-700 font-bold text-slate-400">Tutup</button>
+        <button onclick="document.getElementById('pricingInfoModal').classList.add('hidden'); openFreeTrialModal();" class="flex-1 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold transition">Coba Gratis 1 Bulan</button>
       </div>
     </div>
   </div>
@@ -1664,6 +1704,32 @@
       }
 
       errBox.classList.remove('hidden');
+    }
+
+    function openPricingModal() {
+      const plans = state.plans || DEFAULT_PLANS;
+      const listEl = document.getElementById('pricingModalPlanList');
+      listEl.innerHTML = plans.map(p => {
+        const quotaTxt = p.maxKos >= 99 ? 'Unlimited Kos & Kamar' : `Maks ${p.maxKos} Kos • ${p.maxRooms || 50} Kamar/Kos`;
+        return `
+          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-3 flex items-center justify-between">
+            <div>
+              <p class="font-extrabold text-white text-xs">${p.code}</p>
+              <p class="text-[10px] text-slate-400">${p.desc || quotaTxt}</p>
+              <p class="text-[10px] text-sky-400 font-semibold mt-0.5">${quotaTxt}</p>
+            </div>
+            <div class="text-right">
+              <p class="font-extrabold text-emerald-400 text-xs">${formatRupiah(p.fee)}</p>
+              <p class="text-[9px] text-slate-400">/ bulan</p>
+            </div>
+          </div>
+        `;
+      }).join('');
+      const phoneEl = document.getElementById('pricingAdminPhoneText');
+      if (phoneEl) phoneEl.textContent = state.adminPhone || '6281225009999';
+      const modal = document.getElementById('pricingInfoModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
     }
 
     function openFreeTrialModal() {
