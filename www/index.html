@@ -1846,6 +1846,7 @@
     };
 
     let adMobInitialized = false;
+    let adMobListenersAttached = false;
     let isBannerVisible = false;
     let isInterstitialReady = false;
     let lastInterstitialShownAt = 0;
@@ -1863,6 +1864,28 @@
       return !!(owner && owner.plan === 'TRIAL' && owner.status === 'active');
     }
 
+    function attachAdMobListeners(AdMob) {
+      if (adMobListenersAttached || typeof AdMob.addListener !== 'function') return;
+      adMobListenersAttached = true;
+
+      AdMob.addListener('bannerAdLoaded', () => {
+        const ownerAppView = document.getElementById('ownerAppView');
+        if (ownerAppView && isTrialAdsActive()) {
+          ownerAppView.style.paddingBottom = '56px';
+        }
+      });
+
+      AdMob.addListener('bannerAdFailedToLoad', (err) => {
+        isBannerVisible = false;
+        const ownerAppView = document.getElementById('ownerAppView');
+        if (ownerAppView) ownerAppView.style.paddingBottom = '';
+        if (ADMOB_CONFIG.isTesting) {
+          const msg = err && (err.message || err.code) ? `${err.code || ''} ${err.message || ''}`.trim() : JSON.stringify(err || 'Unknown');
+          showToast(`Info Test AdMob: ${msg}`);
+        }
+      });
+    }
+
     async function syncAdStateForCurrentUser() {
       const AdMob = getAdMobPlugin();
       const ownerAppView = document.getElementById('ownerAppView');
@@ -1874,13 +1897,14 @@
       }
 
       try {
+        attachAdMobListeners(AdMob);
+
         if (!adMobInitialized) {
           await AdMob.initialize({ initializeForTesting: ADMOB_CONFIG.isTesting });
           adMobInitialized = true;
         }
 
         if (shouldShowAds) {
-          if (ownerAppView) ownerAppView.style.paddingBottom = '56px';
           if (!isBannerVisible) {
             isBannerVisible = true;
             await AdMob.showBanner({
@@ -1906,7 +1930,11 @@
           }
         }
       } catch (e) {
-        console.warn('AdMob sync skipped:', e);
+        isBannerVisible = false;
+        if (ownerAppView) ownerAppView.style.paddingBottom = '';
+        if (ADMOB_CONFIG.isTesting) {
+          showToast(`AdMob Error: ${e && e.message ? e.message : e}`);
+        }
       }
     }
 
