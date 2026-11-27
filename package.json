@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "KamarKos Android App",
   "dependencies": {
+    "@capacitor-community/admob": "^6.0.0",
     "@capacitor/core": "^6.1.2"
   },
   "devDependencies": {
