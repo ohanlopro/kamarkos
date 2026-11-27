@@ -1836,8 +1836,110 @@
     // =========================================================
     // MAIN RENDER CONTROLLER
     // =========================================================
+    // ADMOB ADS CONTROLLER (HANYA UNTUK PAKET TRIAL DI APK)
+    // =========================================================
+    const ADMOB_CONFIG = {
+      isTesting: true, // Ganti ke false & pakai ID asli saat rilis ke Play Store
+      bannerAdId: 'ca-app-pub-3940256099942544/6300978111',
+      interstitialAdId: 'ca-app-pub-3940256099942544/1033173712',
+      interstitialCooldownMs: 3 * 60 * 1000 // Jeda minimal 3 menit agar nyaman
+    };
+
+    let adMobInitialized = false;
+    let isBannerVisible = false;
+    let isInterstitialReady = false;
+    let lastInterstitialShownAt = 0;
+
+    function getAdMobPlugin() {
+      if (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) {
+        return window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob ? window.Capacitor.Plugins.AdMob : null;
+      }
+      return null;
+    }
+
+    function isTrialAdsActive() {
+      if (state.currentRole !== 'owner') return false;
+      const owner = getCurrentOwner();
+      return !!(owner && owner.plan === 'TRIAL' && owner.status === 'active');
+    }
+
+    async function syncAdStateForCurrentUser() {
+      const AdMob = getAdMobPlugin();
+      const ownerAppView = document.getElementById('ownerAppView');
+      const shouldShowAds = isTrialAdsActive();
+
+      if (!AdMob) {
+        if (ownerAppView) ownerAppView.style.paddingBottom = '';
+        return;
+      }
+
+      try {
+        if (!adMobInitialized) {
+          await AdMob.initialize({ initializeForTesting: ADMOB_CONFIG.isTesting });
+          adMobInitialized = true;
+        }
+
+        if (shouldShowAds) {
+          if (ownerAppView) ownerAppView.style.paddingBottom = '56px';
+          if (!isBannerVisible) {
+            isBannerVisible = true;
+            await AdMob.showBanner({
+              adId: ADMOB_CONFIG.bannerAdId,
+              adSize: 'BANNER',
+              position: 'BOTTOM_CENTER',
+              margin: 0,
+              isTesting: ADMOB_CONFIG.isTesting
+            });
+          }
+          if (!isInterstitialReady) {
+            isInterstitialReady = true;
+            AdMob.prepareInterstitial({
+              adId: ADMOB_CONFIG.interstitialAdId,
+              isTesting: ADMOB_CONFIG.isTesting
+            }).catch(() => { isInterstitialReady = false; });
+          }
+        } else {
+          if (ownerAppView) ownerAppView.style.paddingBottom = '';
+          if (isBannerVisible) {
+            isBannerVisible = false;
+            await AdMob.removeBanner().catch(() => {});
+          }
+        }
+      } catch (e) {
+        console.warn('AdMob sync skipped:', e);
+      }
+    }
+
+    async function maybeShowInterstitialAd() {
+      if (!isTrialAdsActive()) return;
+      const AdMob = getAdMobPlugin();
+      if (!AdMob) return;
+
+      const now = Date.now();
+      if (now - lastInterstitialShownAt < ADMOB_CONFIG.interstitialCooldownMs) return;
+
+      try {
+        if (isInterstitialReady) {
+          lastInterstitialShownAt = now;
+          isInterstitialReady = false;
+          await AdMob.showInterstitial();
+          // Siapkan iklan berikutnya di background
+          AdMob.prepareInterstitial({
+            adId: ADMOB_CONFIG.interstitialAdId,
+            isTesting: ADMOB_CONFIG.isTesting
+          }).then(() => { isInterstitialReady = true; }).catch(() => { isInterstitialReady = false; });
+        }
+      } catch (e) {
+        isInterstitialReady = false;
+      }
+    }
+
+    // =========================================================
+    // MAIN RENDER CONTROLLER
+    // =========================================================
     function renderAll() {
       evaluateAllOwnerSubscriptions();
+      syncAdStateForCurrentUser();
       const bLogin = document.getElementById('btnRoleLogin');
       const b1 = document.getElementById('btnRoleOwner1');
       const b3 = document.getElementById('btnRoleOwner3');
@@ -2881,6 +2983,7 @@
       state.currentTab = tab;
       saveState();
       renderAll();
+      maybeShowInterstitialAd();
     }
 
     // =========================================================
