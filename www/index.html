@@ -1871,14 +1871,14 @@
       AdMob.addListener('bannerAdLoaded', () => {
         const ownerAppView = document.getElementById('ownerAppView');
         if (ownerAppView && isTrialAdsActive()) {
-          ownerAppView.style.paddingBottom = '56px';
+          ownerAppView.style.paddingTop = '56px';
         }
       });
 
       AdMob.addListener('bannerAdFailedToLoad', (err) => {
         isBannerVisible = false;
         const ownerAppView = document.getElementById('ownerAppView');
-        if (ownerAppView) ownerAppView.style.paddingBottom = '';
+        if (ownerAppView) ownerAppView.style.paddingTop = '';
         if (ADMOB_CONFIG.isTesting) {
           const msg = err && (err.message || err.code) ? `${err.code || ''} ${err.message || ''}`.trim() : JSON.stringify(err || 'Unknown');
           showToast(`Info Test AdMob: ${msg}`);
@@ -1892,7 +1892,7 @@
       const shouldShowAds = isTrialAdsActive();
 
       if (!AdMob) {
-        if (ownerAppView) ownerAppView.style.paddingBottom = '';
+        if (ownerAppView) ownerAppView.style.paddingTop = '';
         return;
       }
 
@@ -1910,7 +1910,7 @@
             await AdMob.showBanner({
               adId: ADMOB_CONFIG.bannerAdId,
               adSize: 'BANNER',
-              position: 'BOTTOM_CENTER',
+              position: 'TOP_CENTER',
               margin: 0,
               isTesting: ADMOB_CONFIG.isTesting
             });
@@ -1923,7 +1923,7 @@
             }).catch(() => { isInterstitialReady = false; });
           }
         } else {
-          if (ownerAppView) ownerAppView.style.paddingBottom = '';
+          if (ownerAppView) ownerAppView.style.paddingTop = '';
           if (isBannerVisible) {
             isBannerVisible = false;
             await AdMob.removeBanner().catch(() => {});
@@ -1931,7 +1931,7 @@
         }
       } catch (e) {
         isBannerVisible = false;
-        if (ownerAppView) ownerAppView.style.paddingBottom = '';
+        if (ownerAppView) ownerAppView.style.paddingTop = '';
         if (ADMOB_CONFIG.isTesting) {
           showToast(`AdMob Error: ${e && e.message ? e.message : e}`);
         }
