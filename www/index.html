@@ -558,15 +558,15 @@
         <div id="tenantFormSection" class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 grid grid-cols-2 gap-1.5">
           <div>
             <label class="text-[10px] text-slate-500 block">Nama Anak Kos</label>
-            <input id="modalTenantName" type="text" placeholder="Kosong" class="w-full border border-slate-300 rounded-lg px-2 py-1 font-semibold bg-white" />
+            <input id="modalTenantName" type="text" oninput="onTenantNameInputChange()" placeholder="Kosong" class="w-full border border-slate-300 rounded-lg px-2 py-1 font-semibold bg-white" />
           </div>
           <div>
-            <label class="text-[10px] text-slate-500 block">Jatuh Tempo</label>
-            <input id="modalDueDate" type="text" placeholder="Contoh: Tgl 10" class="w-full border border-slate-300 rounded-lg px-2 py-1 font-semibold bg-white" />
+            <label class="text-[10px] text-slate-500 block">Jatuh Tempo (Tgl)</label>
+            <input id="modalDueDate" type="number" min="1" max="31" placeholder="Tgl (1-31)" class="w-full border border-slate-300 rounded-lg px-2 py-1 font-semibold bg-white" />
           </div>
           <div>
             <label class="text-[10px] text-slate-500 block">Kampus / Instansi</label>
-            <input id="modalTenantCampus" type="text" placeholder="UKSW / UIN / Kerja" class="w-full border border-slate-300 rounded-lg px-2 py-1 font-semibold bg-white" />
+            <input id="modalTenantCampus" type="text" placeholder="Contoh: Kampus / Kantor" class="w-full border border-slate-300 rounded-lg px-2 py-1 font-semibold bg-white" />
           </div>
           <div>
             <label class="text-[10px] text-slate-500 block">Asal Daerah</label>
@@ -3833,7 +3833,8 @@
       document.getElementById('modalTenantOrigin').value = room.origin || '';
       document.getElementById('modalTenantPhone').value = room.phone || '';
       document.getElementById('modalParentPhone').value = room.parentPhone || '';
-      document.getElementById('modalDueDate').value = room.dueDate || '';
+      const dueMatch = (room.dueDate || '').match(/\d+/);
+      document.getElementById('modalDueDate').value = dueMatch ? dueMatch[0] : '';
       document.getElementById('modalRoomNote').value = room.note || '';
       document.getElementById('modalBaseRent').value = room.baseRent || 0;
       document.getElementById('modalExtraFee').value = room.extraFee || 0;
@@ -3850,6 +3851,14 @@
       const modal = document.getElementById('roomModal');
       modal.classList.add('hidden');
       modal.classList.remove('flex');
+    }
+
+    function onTenantNameInputChange() {
+      if (!state.activeModalRoom) return;
+      const nameVal = (document.getElementById('modalTenantName').value || '').trim();
+      if (state.activeModalRoom.tempStatus === 'empty' && nameVal.length > 0) {
+        setModalRoomStatus('paid', true);
+      }
     }
 
     function setModalRoomStatus(status, isInitialOpen) {
@@ -3892,7 +3901,13 @@
 
       room.number = document.getElementById('modalRoomNumber').value.trim() || room.number;
       room.floor = document.getElementById('modalRoomFloor').value.trim() || room.floor;
-      room.status = state.activeModalRoom.tempStatus;
+
+      const tenantNameVal = document.getElementById('modalTenantName').value.trim();
+      let nextStatus = state.activeModalRoom.tempStatus;
+      if (nextStatus === 'empty' && tenantNameVal.length > 0) {
+        nextStatus = 'paid';
+      }
+      room.status = nextStatus;
       room.baseRent = Number(document.getElementById('modalBaseRent').value) || 0;
 
       if (room.status === 'empty') {
@@ -3905,12 +3920,18 @@
         room.note = '';
         room.extraFee = 0;
       } else {
-        room.tenantName = document.getElementById('modalTenantName').value.trim();
+        room.tenantName = tenantNameVal;
         room.campus = document.getElementById('modalTenantCampus').value.trim();
         room.origin = document.getElementById('modalTenantOrigin').value.trim();
         room.phone = document.getElementById('modalTenantPhone').value.trim();
         room.parentPhone = document.getElementById('modalParentPhone').value.trim();
-        room.dueDate = document.getElementById('modalDueDate').value.trim();
+        const dueNumRaw = parseInt(document.getElementById('modalDueDate').value, 10);
+        if (!isNaN(dueNumRaw) && dueNumRaw >= 1) {
+          const clampedDue = Math.min(31, Math.max(1, dueNumRaw));
+          room.dueDate = `Tgl ${clampedDue}`;
+        } else {
+          room.dueDate = '-';
+        }
         room.note = document.getElementById('modalRoomNote').value.trim();
         room.extraFee = Number(document.getElementById('modalExtraFee').value) || 0;
       }
