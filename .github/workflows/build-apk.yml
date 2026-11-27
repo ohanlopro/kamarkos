@@ -39,7 +39,7 @@ jobs:
           import os, glob
           from PIL import Image, ImageOps, ImageDraw
 
-          # 1. Update strings.xml (Nama Aplikasi di HP)
+          # 1. Update strings.xml (App name on phone)
           strings_path = 'android/app/src/main/res/values/strings.xml'
           os.makedirs(os.path.dirname(strings_path), exist_ok=True)
           strings_content = '''<?xml version=\"1.0\" encoding=\"utf-8\"?>
@@ -64,7 +64,19 @@ jobs:
                   f.write(gc)
               print('Updated build.gradle applicationId to com.kamarkos.app')
 
-          # 3. Generate Android Mipmap Icons dari www/icon-512.png
+          # 2B. Inject AdMob APPLICATION_ID into AndroidManifest.xml
+          manifest_path = 'android/app/src/main/AndroidManifest.xml'
+          if os.path.exists(manifest_path):
+              with open(manifest_path, 'r', encoding='utf-8') as f:
+                  mc = f.read()
+              admob_meta = '<meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"ca-app-pub-3940256099942544~3347511713\"/>'
+              if 'com.google.android.gms.ads.APPLICATION_ID' not in mc and '</application>' in mc:
+                  mc = mc.replace('</application>', f'        {admob_meta}\n    </application>')
+                  with open(manifest_path, 'w', encoding='utf-8') as f:
+                      f.write(mc)
+                  print('Injected AdMob APPLICATION_ID into AndroidManifest.xml')
+
+          # 3. Generate Android Mipmap Icons from www/icon-512.png
           icon_src = 'www/icon-512.png'
           if os.path.exists(icon_src):
               im = Image.open(icon_src).convert('RGBA')
